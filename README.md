@@ -13,10 +13,11 @@ This project implements a trajectory recovery system for UAVs using a combinatio
 
 ## Architecture
 
-The system consists of two main components:
+The system consists of three main components:
 
 1. **Autoencoder**: Compresses 3D trajectory data into a lower-dimensional latent space
 2. **Diffusion Model**: Learns the trajectory distribution in latent space using a denoising diffusion probabilistic model
+3. ***UAV dymaics model***: 6 DoF agent to deliver goods in urban areas with position control. Once arrive the spot, the policy will be triggered.
 
 ## Usage
 
