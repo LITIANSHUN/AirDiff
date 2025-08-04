@@ -26,6 +26,17 @@ python, simulink, Airsim
 
 Dataset wil be available if the paper could be accepted.
 
+### Build / Run
+
+bash
+
+Copy
+
+```bash
+g++ -std=c++17 quadcopter_delivery.cpp -o quadcopter_delivery
+./quadcopter_delivery
+```
+
 # Generate hybrid data
 
 data = generate_synthetic_data()
