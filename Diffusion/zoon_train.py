@@ -25,7 +25,7 @@ def parse_args():
     return parser.parse_args()
 
 
-# ==== 数据处理 ====
+# ====data====
 
 def create_trajectory_windows(data, window_size=10):
     segments = []
@@ -46,7 +46,7 @@ def normalize_trajectories(segments):
 def denormalize_trajectories(normalized_segments, mean, std):
     return normalized_segments * std + mean
 
-# ==== 自定义 Dataset ====
+# ====Dataset ====
 
 class TrajectoryDataset(Dataset):
     def __init__(self, segments, mask_ratio=0.3, fixed_mask=False):
@@ -144,7 +144,7 @@ class Trainer:
 def evaluate_and_plot(model, trajectory_segments, traj_mean, traj_std):
         print("Model loaded.")
 
-        # 可视化单段
+       
         idx = 4
         segment = trajectory_segments[idx]
         test_dataset = TrajectoryDataset(np.array([segment]), mask_ratio=0.3, fixed_mask=True)
@@ -153,7 +153,7 @@ def evaluate_and_plot(model, trajectory_segments, traj_mean, traj_std):
         with torch.no_grad():
             pred = model(masked_input.unsqueeze(0)).squeeze(0).numpy()
 
-        # 反归一化
+        
         pred = denormalize_trajectories(pred, traj_mean, traj_std)[0]
         target = denormalize_trajectories(target.numpy(), traj_mean, traj_std)[0]
         masked_input = denormalize_trajectories(masked_input.numpy(), traj_mean, traj_std)[0]
@@ -168,11 +168,11 @@ def evaluate_and_plot(model, trajectory_segments, traj_mean, traj_std):
         ax.scatter(pred[missing_idx, 0], pred[missing_idx, 1], pred[missing_idx, 2], c='green', label='Predicted', marker='^')
         ax.plot(target[:, 0], target[:, 1], target[:, 2], color='black', alpha=0.4, label='Original Trajectory')
         ax.plot(pred[:, 0], pred[:, 1], pred[:, 2], color='orange', alpha=0.4, label='Predicted Trajectory')
-        # 坐标轴标签
+        # axis
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
-        # 坐标轴范围，根据数据traj_mean和traj_std进行设置
+        # scope
         # ax.set_xlim([
         #     # 
         # ])
@@ -184,7 +184,7 @@ def evaluate_and_plot(model, trajectory_segments, traj_mean, traj_std):
         plt.savefig("Plot/evaluate_trajectory_plot.png", dpi=300)
         plt.show()
 
-        # 在整个测试数据上算下mSE
+        # 
         test_dataset = TrajectoryDataset(trajectory_segments, mask_ratio=0.3, fixed_mask=True)
         test_loader = DataLoader(test_dataset, batch_size=32)
         test_loss = 0
@@ -215,7 +215,7 @@ def main():
     all_data = pd.concat(dfs, ignore_index=True)
     all_data = all_data.dropna()
 
-    # 数据准备
+    # 
     window_size = 10
     trajectory_segments = create_trajectory_windows(all_data, window_size)
     trajectory_segments, traj_mean, traj_std = normalize_trajectories(trajectory_segments)

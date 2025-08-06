@@ -1,5 +1,4 @@
-# Adapted from Huggingface by Tongyu Lu
-# https://github.com/huggingface/diffusers/blob/v0.30.3/src/diffusers/models/resnet.py
+
 
 from functools import partial
 from typing import Optional, Tuple, Union

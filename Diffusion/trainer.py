@@ -117,19 +117,19 @@ if __name__ == '__main__':
     dataset = TrajectoryDataset(data)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
 
-    # 先训练自编码器
+    # train
     if ae_train_flag:
         autoencoder = Autoencoder(latent_dim = 32, input_dim=3, seq_length=50)
         autoencoder.train()
         train_autoencoder(autoencoder, dataloader)
-        # 保存自编码器模型
+        # save
         torch.save(autoencoder.state_dict(), 'autoencoder.pth')
     else:
-        # 加载自编码器模型
+        # load VAE
         autoencoder = Autoencoder(latent_dim = 32, input_dim=3, seq_length=50)
         autoencoder.load_state_dict(torch.load('autoencoder.pth'))
         autoencoder.eval()
-    # 输出自编码器的模型结构
+    # output
     print(autoencoder)
     # 训练扩散模型
     diffusion_model = get_model(latent_dim = 32)
@@ -140,10 +140,10 @@ if __name__ == '__main__':
 
         train_diffusion_model(diffusion_model, autoencoder, dataloader, scheduler,
                               num_epochs=100, learning_rate= 4e-4)
-        # 保存扩散模型
+        # save
         torch.save(diffusion_model.state_dict(), 'diffusion_model.pth')
     else:
-        # 加载扩散模型
+        # upload
         diffusion_model.load_state_dict(torch.load('diffusion_model.pth'))
         diffusion_model.eval()
         # Generate a sample trajectory

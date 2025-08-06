@@ -1,9 +1,10 @@
 
 import torch.nn as nn
 import torch
-# ==== 模型 ====
-# 这里定义了一个函数 get_model，根据传入的模型名称返回对应的模型实例
-# 目前支持的模型有 MLP_Flattened、CNN_Restore、LSTM_Restore 和 Transformer_Restore
+# ==== Model ====
+# The get_model function instantiates and returns a model based on the provided model_name.
+# Currently supported models: MLP_Flattened, CNN_Restore, LSTM_Restore, and Transformer_Restore.
+
 
 def get_model(name: str):
     name = name.lower()

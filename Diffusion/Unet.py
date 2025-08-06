@@ -15,7 +15,7 @@ def get_model(latent_dim=32):
     #         block_out_channels=(64, 128),
     #         down_block_types=("DownBlock1D", "DownBlock1D"),
     #         up_block_types=("UpBlock1D", "UpBlock1D"),
-    #         # 类别
+    #         # type
 
     #     )
 
@@ -44,9 +44,8 @@ def get_model(latent_dim=32):
         # projection_class_embeddings_input_dim = latent_dim,
         encoder_hid_dim=latent_dim
         # class_embeddings_concat=True, # whether to concatenate the class embeddings with the hidden states,
-        # encoder_hid_dim = config["guidance_input_dim"], # the dimension of the guidance input 包括成功了没，分数。
-        # # 目前的话就是到达目的地了没，拿到得分点没，拿到了多少分，那维度就是3，行开整
-        # encoder_hid_dim_type="text_proj",
+        # encoder_hid_dim = config["guidance_input_dim"], # the dimension of the guidance input 
+                # encoder_hid_dim_type="text_proj",
 
     )
 

@@ -169,23 +169,23 @@ if __name__ == '__main__':
     dataset = TrajectoryDataset(data)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
 
-    # 先训练自编码器 (First train the autoencoder)
+    #  (First train the autoencoder)
     if ae_train_flag:
         autoencoder = Autoencoder(latent_dim=32, input_dim=3, seq_length=50)
         autoencoder.train()
         train_autoencoder(autoencoder, dataloader)
-        # 保存自编码器模型 (Save the autoencoder model)
+        #  (Save the autoencoder model)
         torch.save(autoencoder.state_dict(), 'autoencoder.pth')
     else:
-        # 加载自编码器模型 (Load the autoencoder model)
+        #  (Load the autoencoder model)
         autoencoder = Autoencoder(latent_dim=32, input_dim=3, seq_length=50)
         autoencoder.load_state_dict(torch.load('autoencoder.pth'))
         autoencoder.eval()
     
-    # 输出自编码器的模型结构 (Output the autoencoder model structure)
+    # (Output the autoencoder model structure)
     print(autoencoder)
     
-    # 训练选择的模型 (Train the selected model)
+    #  (Train the selected model)
     if model_type == 'diffusion':
         from Unet import get_model
         model = get_model(latent_dim=32)

@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Dataset, random_split
 
-# ==== 数据处理 ====
+# ====data ====
 
 def create_trajectory_windows(data, window_size=10):
     segments = []
@@ -31,7 +31,7 @@ def normalize_trajectories(segments):
 def denormalize_trajectories(normalized_segments, mean, std):
     return normalized_segments * std + mean
 
-# ==== 自定义 Dataset ====
+# ====  Dataset ====
 
 class TrajectoryDataset(Dataset):
     def __init__(self, segments, mask_ratio=0.3, fixed_mask=False):
@@ -162,7 +162,7 @@ class Trainer:
         torch.save(self.model.state_dict(), f"model_epoch_{epoch}_{self.model.name}.pth")
         print(f"Model saved at epoch {epoch}")
 
-# ==== 主流程 ====
+# ====main ====
 
 folder_path = "Data"
 file_paths = glob.glob(os.path.join(folder_path, "*.csv"))
@@ -176,7 +176,7 @@ for idx, path in enumerate(file_paths):
 all_data = pd.concat(dfs, ignore_index=True)
 all_data = all_data.dropna()
 
-# 数据准备
+# prepare
 window_size = 10
 trajectory_segments = create_trajectory_windows(all_data, window_size)
 trajectory_segments, traj_mean, traj_std = normalize_trajectories(trajectory_segments)
@@ -192,11 +192,11 @@ train_dataset, val_dataset = random_split(train_dataset, [train_size, test_size]
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(val_dataset, batch_size=32)
 
-# 模型选择
+# Model selection
 # model = MLP_Flattened(input_dim=window_size * 3, hidden_dim=256, output_dim=window_size*3)
 model = CNN_Restore(in_channels=3, out_channels=3, hidden_channels=64)
 
-# 是否训练
+# Whether to train
 # train_flag = True
 train_flag = False
 
@@ -205,10 +205,11 @@ if train_flag:
     trainer = Trainer(model, train_loader, test_loader)
     trainer.train(epochs=10000)
 else:
+    # Load pre-trained weights
     model.load_state_dict(torch.load(f"model_epoch_10000_{model.name}.pth"))
     print("Model loaded.")
 
-    # 可视化单段
+    # Visualize a single segment
     idx = 4
     segment = trajectory_segments[idx]
     test_dataset = TrajectoryDataset(np.array([segment]), mask_ratio=0.3, fixed_mask=True)
@@ -217,46 +218,47 @@ else:
     with torch.no_grad():
         pred = model(masked_input.unsqueeze(0)).squeeze(0).numpy()
 
-    # 反归一化
-    pred = denormalize_trajectories(pred, traj_mean, traj_std)[0]
+    # De-normalize
+    pred   = denormalize_trajectories(pred,           traj_mean, traj_std)[0]
     target = denormalize_trajectories(target.numpy(), traj_mean, traj_std)[0]
     masked_input = denormalize_trajectories(masked_input.numpy(), traj_mean, traj_std)[0]
 
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    known_idx = mask[:, 0] == 1
+    ax  = fig.add_subplot(111, projection='3d')
+
+    known_idx   = mask[:, 0] == 1
     missing_idx = mask[:, 0] == 0
 
-    ax.scatter(masked_input[known_idx, 0], masked_input[known_idx, 1], masked_input[known_idx, 2], c='blue', label='Known')
-    ax.scatter(target[missing_idx, 0], target[missing_idx, 1], target[missing_idx, 2], c='red', label='True', marker='x')
-    ax.scatter(pred[missing_idx, 0], pred[missing_idx, 1], pred[missing_idx, 2], c='green', label='Predicted', marker='^')
-    ax.plot(target[:, 0], target[:, 1], target[:, 2], color='black', alpha=0.4, label='Original Trajectory')
-    ax.plot(pred[:, 0], pred[:, 1], pred[:, 2], color='orange', alpha=0.4, label='Predicted Trajectory')
-    # 坐标轴标签
+    ax.scatter(masked_input[known_idx, 0],   masked_input[known_idx, 1],   masked_input[known_idx, 2],   c='blue',  label='Known')
+    ax.scatter(target[missing_idx, 0],       target[missing_idx, 1],       target[missing_idx, 2],       c='red',   label='Ground Truth', marker='x')
+    ax.scatter(pred[missing_idx, 0],         pred[missing_idx, 1],         pred[missing_idx, 2],         c='green', label='Predicted',    marker='^')
+
+    ax.plot(target[:, 0], target[:, 1], target[:, 2], color='black',  alpha=0.4, label='Original Trajectory')
+    ax.plot(pred[:, 0],   pred[:, 1],   pred[:, 2],   color='orange', alpha=0.4, label='Predicted Trajectory')
+
+    # Axis labels
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    # 坐标轴范围，根据数据traj_mean和traj_std进行设置
-    # ax.set_xlim([
-    #     # 
-    # ])
-    ax.set_zlim([15,25])
 
+    # Axis limits (optional)
+    ax.set_zlim([15, 25])
 
-    ax.set_title("Trajectory Completion " + model.name)
+    ax.set_title("Trajectory Completion – " + model.name)
     ax.legend()
     plt.savefig("Plot/evaluate_trajectory_plot.png", dpi=300)
     plt.show()
 
-    # 在整个测试数据上算下mSE
+    # Compute MSE over the entire test set
     test_dataset = TrajectoryDataset(trajectory_segments, mask_ratio=0.3, fixed_mask=True)
-    test_loader = DataLoader(test_dataset, batch_size=32)
-    test_loss = 0
+    test_loader  = DataLoader(test_dataset, batch_size=32)
+
+    test_loss = 0.0
     with torch.no_grad():
         for X, y, mask in test_loader:
-            X, y, mask = X.to('cpu'), y.to('cpu'), mask.to('cpu')
+            X, y, mask = X.cpu(), y.cpu(), mask.cpu()
             output = model(X)
-            loss = nn.MSELoss()(output * (1 - mask), y * (1 - mask))
+            loss   = nn.MSELoss()(output * (1 - mask), y * (1 - mask))
             test_loss += loss.item()
     test_loss /= len(test_loader)
     print(f"Test Loss: {test_loss:.6f}")

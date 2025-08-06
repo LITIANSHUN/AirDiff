@@ -1,5 +1,4 @@
-# Adapted from Huggingface by Tongyu Lu
-# https://github.com/huggingface/diffusers/blob/v0.30.3/src/diffusers/models/transformers/transformer_2d.py
+
 
 from typing import Any, Dict, Optional
 
